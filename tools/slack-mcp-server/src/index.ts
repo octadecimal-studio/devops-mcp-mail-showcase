@@ -224,57 +224,59 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 /**
- * Slack Commands
+ * Slack Bot Mentions - reakcja na @assistant
  */
 
-// /ide status
-slackApp.command('/ide-status', async ({ command, ack, respond }) => {
-  await ack();
+// @assistant status - lista otwartych PRów
+slackApp.event('app_mention', async ({ event, say }) => {
+  const text = event.text.toLowerCase();
 
   try {
-    // Pobierz otwarte PRy
-    const prs = await github.pulls.list({
-      owner: process.env.GITHUB_OWNER!,
-      repo: process.env.GITHUB_REPO!,
-      state: 'open',
-    });
+    // @assistant status
+    if (text.includes('status')) {
+      const prs = await github.pulls.list({
+        owner: process.env.GITHUB_OWNER!,
+        repo: process.env.GITHUB_REPO!,
+        state: 'open',
+      });
 
-    const message = prs.data.length === 0
-      ? '✅ Brak otwartych Pull Requests'
-      : `📊 Otwarte PRy:\n${prs.data
-          .map((pr) => `• #${pr.number}: ${pr.title}`)
-          .join('\n')}`;
+      const message = prs.data.length === 0
+        ? '✅ Brak otwartych Pull Requests'
+        : `📊 Otwarte PRy:\n${prs.data
+            .map((pr) => `• #${pr.number}: ${pr.title}`)
+            .join('\n')}`;
 
-    await respond(message);
+      await say(message);
+      return;
+    }
+
+    // @assistant merge <number>
+    const mergeMatch = text.match(/merge\s+#?(\d+)/);
+    if (mergeMatch) {
+      const prNumber = parseInt(mergeMatch[1], 10);
+
+      await say(`⏳ Mergowanie PR #${prNumber}...`);
+
+      await github.pulls.merge({
+        owner: process.env.GITHUB_OWNER!,
+        repo: process.env.GITHUB_REPO!,
+        pull_number: prNumber,
+        merge_method: 'squash',
+      });
+
+      await say(`✅ PR #${prNumber} zmergowany pomyślnie!`);
+      return;
+    }
+
+    // Domyślna odpowiedź
+    await say(
+      `👋 Cześć! Dostępne komendy:\n` +
+      `• \`@assistant status\` - pokaż otwarte PRy\n` +
+      `• \`@assistant merge <number>\` - zmerguj PR\n\n` +
+      `Przykład: \`@assistant merge 14\``
+    );
   } catch (error) {
-    await respond(`❌ Błąd: ${error instanceof Error ? error.message : String(error)}`);
-  }
-});
-
-// /ide merge <pr_number>
-slackApp.command('/ide-merge', async ({ command, ack, respond }) => {
-  await ack();
-
-  const prNumber = parseInt(command.text.trim(), 10);
-  
-  if (isNaN(prNumber)) {
-    await respond('❌ Podaj poprawny numer PR: `/ide-merge 14`');
-    return;
-  }
-
-  try {
-    await respond(`⏳ Mergowanie PR #${prNumber}...`);
-
-    await github.pulls.merge({
-      owner: process.env.GITHUB_OWNER!,
-      repo: process.env.GITHUB_REPO!,
-      pull_number: prNumber,
-      merge_method: 'squash',
-    });
-
-    await respond(`✅ PR #${prNumber} zmergowany pomyślnie!`);
-  } catch (error) {
-    await respond(`❌ Błąd: ${error instanceof Error ? error.message : String(error)}`);
+    await say(`❌ Błąd: ${error instanceof Error ? error.message : String(error)}`);
   }
 });
 

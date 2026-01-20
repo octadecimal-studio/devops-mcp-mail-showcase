@@ -38,12 +38,12 @@ Custom MCP Server umożliwiający kontrolę development workflow przez Slack:
 
 ## 🚀 Features (MVP)
 
-### Phase 1: Basic Commands (Dzisiaj)
+### Phase 1: Basic Commands ✅ DONE
 - [x] Setup projektu + dependencies
-- [ ] `/ide status` - pokaż aktywne PR i CI/CD
-- [ ] `/ide merge <pr_number>` - merge PR
-- [ ] `/ide check-ci <pr_number>` - sprawdź CI/CD status
-- [ ] MCP Server registration w IDE
+- [x] `@assistant status` - pokaż aktywne PR i CI/CD
+- [x] `@assistant merge <number>` - merge PR
+- [x] MCP Server registration w IDE
+- [x] Socket Mode (no public URL needed)
 
 ### Phase 2: Natural Language (Jutro)
 - [ ] Natural language parsing
