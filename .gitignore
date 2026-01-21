@@ -140,6 +140,7 @@ lerna-debug.log*
 # Docker
 # ----------------
 docker-compose.override.yml
+docker/fetchmail/fetchmailrc
 
 # ----------------
 # MCP / IDE
