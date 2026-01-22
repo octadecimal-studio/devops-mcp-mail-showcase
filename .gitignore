@@ -109,6 +109,9 @@ Thumbs.db
 !.env.example
 secrets/
 .secrets/
+# Credentials OVH API
+.admin
+.admin.*
 
 # ----------------
 # Logs
