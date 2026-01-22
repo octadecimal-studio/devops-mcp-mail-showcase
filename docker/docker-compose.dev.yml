@@ -35,8 +35,36 @@ services:
     ports:
       - "8025:8025"  # UI
       - "1025:1025"  # SMTP
+    volumes:
+      - mailpit_data:/data
+    environment:
+      - MP_SMTP_BIND_ADDR=0.0.0.0:1025
+      - MP_UI_BIND_ADDR=0.0.0.0:8025
+      - MP_DATA_FILE=/data/mailpit.db
+      - MP_MAX_MESSAGES=500
+      - MP_MAX_MESSAGE_SIZE=10485760
     networks:
       - octadecimal
+
+  # Fetchmail do pobierania emaili z OVH i przekazywania do Mailpit
+  fetchmail:
+    build:
+      context: ./fetchmail
+      dockerfile: Dockerfile
+    container_name: octadecimal_fetchmail
+    restart: unless-stopped
+    volumes:
+      - ./fetchmail/fetchmailrc:/etc/fetchmail/fetchmailrc
+      - fetchmail_logs:/var/log/fetchmail
+      - fetchmail_mail:/var/mail/fetchmail
+    environment:
+      - MAILPIT_HOST=mailpit
+      - MAILPIT_PORT=1025
+      - FETCHMAIL_INTERVAL=${FETCHMAIL_INTERVAL:-300}
+    networks:
+      - octadecimal
+    depends_on:
+      - mailpit
 
   # PHPMyAdmin dla łatwego dostępu do bazy
   phpmyadmin:
@@ -53,3 +81,11 @@ services:
       - octadecimal
     depends_on:
       - mysql
+
+volumes:
+  mailpit_data:
+    driver: local
+  fetchmail_logs:
+    driver: local
+  fetchmail_mail:
+    driver: local

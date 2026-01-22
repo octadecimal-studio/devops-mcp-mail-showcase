@@ -109,6 +109,9 @@ Thumbs.db
 !.env.example
 secrets/
 .secrets/
+# Credentials OVH API
+.admin
+.admin.*
 
 # ----------------
 # Logs
@@ -140,9 +143,14 @@ lerna-debug.log*
 # Docker
 # ----------------
 docker-compose.override.yml
+docker/fetchmail/fetchmailrc
 
 # ----------------
 # MCP / IDE
 # ----------------
 .ide/
 !AGENTS.md
+
+
+.dev/.secret
+.dev/.secret/notforall.md
