@@ -86,15 +86,15 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
-  # Laravel Horizon (Queue Worker)
-  horizon:
+  # Laravel Queue Worker
+  queue:
     build:
       context: ./php
       dockerfile: Dockerfile
-    container_name: octadecimal_horizon
+    container_name: octadecimal_queue
     restart: unless-stopped
     working_dir: /var/www/html
-    command: php artisan horizon
+    command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
     volumes:
       - ../src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
@@ -102,7 +102,7 @@ services:
       - octadecimal
     depends_on:
       - app
-      - redis
+      - mysql
     environment:
       - APP_ENV=${APP_ENV:-production}
       - DB_HOST=mysql
