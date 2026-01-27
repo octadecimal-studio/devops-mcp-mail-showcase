@@ -2,20 +2,22 @@
 # Autor: Octadecimal Studio
 # Wersja: 1.0.0
 
+name: octadecimal-studio
+
 services:
   # Aplikacja PHP-FPM (Laravel)
   app:
     build:
       context: ./php
       dockerfile: Dockerfile
-    container_name: octadecimal_app
+    container_name: octadecimal_studio_app
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - ../src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       mysql:
         condition: service_healthy
@@ -33,7 +35,7 @@ services:
   # Dla produkcji z SSL, użyj reverse proxy (Traefik/Caddy) lub skonfiguruj certyfikaty.
   nginx:
     image: nginx:alpine
-    container_name: octadecimal_nginx
+    container_name: octadecimal_studio_nginx
     restart: unless-stopped
     ports:
       - "${APP_PORT:-80}:80"
@@ -45,25 +47,25 @@ services:
       # Dla SSL odkomentuj i dodaj certyfikaty:
       # - ./nginx/ssl:/etc/nginx/ssl:ro
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       - app
 
   # Baza danych MySQL 8.0
   mysql:
     image: mysql:8.0
-    container_name: octadecimal_mysql
+    container_name: octadecimal_studio_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-octadecimal}
-      MYSQL_USER: ${DB_USERNAME:-octadecimal}
+      MYSQL_DATABASE: ${DB_DATABASE:-octadecimal_studio}
+      MYSQL_USER: ${DB_USERNAME:-octadecimal_studio}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/my.cnf:/etc/mysql/conf.d/custom.cnf
     networks:
-      - octadecimal
+      - octadecimal_studio
     ports:
       - "${DB_PORT:-3307}:3306"
     healthcheck:
@@ -76,13 +78,13 @@ services:
   # Cache Redis
   redis:
     image: redis:alpine
-    container_name: octadecimal_redis
+    container_name: octadecimal_studio_redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     networks:
-      - octadecimal
+      - octadecimal_studio
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
@@ -91,7 +93,7 @@ services:
     build:
       context: ./php
       dockerfile: Dockerfile
-    container_name: octadecimal_queue
+    container_name: octadecimal_studio_queue
     restart: unless-stopped
     working_dir: /var/www/html
     command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
@@ -99,7 +101,7 @@ services:
       - ../src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       - app
       - mysql
@@ -115,7 +117,7 @@ services:
     build:
       context: ./php
       dockerfile: Dockerfile
-    container_name: octadecimal_scheduler
+    container_name: octadecimal_studio_scheduler
     restart: unless-stopped
     working_dir: /var/www/html
     command: >
@@ -124,7 +126,7 @@ services:
       - ../src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       - app
     environment:
@@ -135,7 +137,7 @@ services:
       - REDIS_PORT=6379
 
 networks:
-  octadecimal:
+  octadecimal_studio:
     driver: bridge
 
 volumes:
