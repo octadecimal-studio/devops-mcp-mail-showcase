@@ -2,6 +2,8 @@
 # Nadpisuje ustawienia z docker-compose.yml dla środowiska deweloperskiego
 # Użycie: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
+name: octadecimal-studio
+
 services:
   app:
     environment:
@@ -16,25 +18,25 @@ services:
 
   nginx:
     ports:
-      - "8082:80"
+      - "8084:80"  # Zmienione z 8082 - konflikt z projektem octadecimal
     # Port 443 celowo pominięty w dev - brak SSL
 
   mysql:
     ports:
-      - "3307:3306"
+      - "3310:3306"  # Zmienione z 3309 - unikatowy port
 
   redis:
     ports:
-      - "6380:6379"
+      - "6382:6379"  # Zmienione z 6380 - konflikt z projektem octadecimal
 
   # Mailpit do przechwytywania emaili w dev
   mailpit:
     image: axllent/mailpit:latest
-    container_name: octadecimal_mailpit
+    container_name: octadecimal_studio_mailpit
     restart: unless-stopped
     ports:
-      - "8025:8025"  # UI
-      - "1025:1025"  # SMTP
+      - "8027:8025"  # UI - zmienione z 8025 - konflikt z projektem octadecimal
+      - "1027:1025"  # SMTP - zmienione z 1025 - konflikt z projektem octadecimal
     volumes:
       - mailpit_data:/data
     environment:
@@ -44,14 +46,14 @@ services:
       - MP_MAX_MESSAGES=500
       - MP_MAX_MESSAGE_SIZE=10485760
     networks:
-      - octadecimal
+      - octadecimal_studio
 
   # Fetchmail do pobierania emaili z OVH i przekazywania do Mailpit
   fetchmail:
     build:
       context: ./fetchmail
       dockerfile: Dockerfile
-    container_name: octadecimal_fetchmail
+    container_name: octadecimal_studio_fetchmail
     restart: unless-stopped
     volumes:
       - ./fetchmail/fetchmailrc:/etc/fetchmail/fetchmailrc
@@ -62,23 +64,23 @@ services:
       - MAILPIT_PORT=1025
       - FETCHMAIL_INTERVAL=${FETCHMAIL_INTERVAL:-300}
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       - mailpit
 
   # PHPMyAdmin dla łatwego dostępu do bazy
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: octadecimal_phpmyadmin
+    container_name: octadecimal_studio_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - "8085:80"  # Zmienione z 8081 - konflikt z projektem octadecimal
     environment:
       - PMA_HOST=mysql
-      - PMA_USER=${DB_USERNAME:-octadecimal}
+      - PMA_USER=${DB_USERNAME:-octadecimal_studio}
       - PMA_PASSWORD=${DB_PASSWORD:-secret}
     networks:
-      - octadecimal
+      - octadecimal_studio
     depends_on:
       - mysql
 
